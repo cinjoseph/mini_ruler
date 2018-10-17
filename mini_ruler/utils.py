@@ -2,7 +2,6 @@
 
 import copy
 
-
 def level_print(l, string):
     string = str(string)
     tmp = ''
