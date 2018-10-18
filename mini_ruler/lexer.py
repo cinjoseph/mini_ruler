@@ -31,12 +31,9 @@ class RuleLexer:
 
     t_ANY_ignore = ' \t,'
     t_ANY_ignore_COMMENT = r'\#.*'
-
     t_LOGICAL_OPERATOR = r'&&|\|\|'
     t_RELATIONAL_OPERATOR = r'==|\!=|>=*|<=*'
-
     t_ANY_VAR = r'[a-zA-Z_@][0-9a-zA-Z._-]*'
-
 
     def t_ANY_NUMBER(self, t):
         r'\d+(.\d+)?'
@@ -53,7 +50,7 @@ class RuleLexer:
         t.lexer.lineno += len(t.value)
 
     def t_ANY_error(self, t):
-        print "Illegal character '%s'" % t.value[0]
+        print("Illegal character '%s'" % t.value[0])
         # t.lexer.skip(1)
 
     def t_ANY_begin_func(self, t):
@@ -87,12 +84,12 @@ class RuleLexer:
             tokens = []
             for tok in self.lexer:
                 # DEBUG PRINT
-                print self.lexer.lexstatestack, self.lexer.lexstate, (tok.type, tok.value)
+                print(self.lexer.lexstatestack, self.lexer.lexstate, (tok.type, tok.value))
                 tokens.append((tok.type, tok.value))
-        except lex.LexError, e:
-            print "Error: %s" % e
-            print data
-            print ''.join([' ' for i in range(self.lexer.lexpos) ]) + '^'
+        except(lex.LexError) as e:
+            print("Error: %s" % e)
+            print(data)
+            print(''.join([' ' for i in range(self.lexer.lexpos) ]) + '^')
             raise e
 
         return tokens

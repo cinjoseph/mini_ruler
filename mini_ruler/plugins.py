@@ -7,4 +7,4 @@ def in_num_range(x, low, high):
 
 
 def accept():
-    print "Accept!!!"
+    print("Accept!!!")

@@ -98,7 +98,7 @@ class RuleSet:
         for rule_obj in self.rule_obj_list:
             rule, condition, action = rule_obj[0], rule_obj[1], rule_obj[2]
             result = condition.match(p)
-            print "In rule set '%s' run '%s'. is result matching? %s" % (self.name, rule, result)
+            print("In rule set '%s' run '%s'. is result matching? %s" % (self.name, rule, result))
             if result :
                 return action
         return None
@@ -131,10 +131,10 @@ class RuleMap:
                                       self.condition_factor_factory,
                                       self.action_factor_factory)
 
-    def register_condition_func(self, f, name=None):
+    def register_condition_func(self, f, name):
         self.condition_factor_factory.func_factory.register(f, name)
 
-    def register_action_func(self, f, name=None):
+    def register_action_func(self, f, name):
         self.action_factor_factory.func_factory.register(f, name)
 
     def entry(self, d):
@@ -150,7 +150,7 @@ class RuleMap:
             action.match(d)
 
     def __bulitin_goto_rule__(self, name, d):
-        print "GOTO %s" % name
+        print("GOTO %s" % name)
         self._entry(name, d)
 
 if __name__ == "__main__":
@@ -188,10 +188,10 @@ if __name__ == "__main__":
     rule_map = RuleMap('testRuleMap', 'main')
 
     # 注册条件匹配中的动作函数
-    rule_map.register_condition_func('plugins.in_num_range')
+    rule_map.register_condition_func('plugins.in_num_range', 'in_num_range')
 
     # 注册匹配成功后的结果动作函数
-    rule_map.register_action_func('plugins.accept')
+    rule_map.register_action_func('plugins.accept', 'accept')
 
     rule_map.register_rule_set('main', rule_main)
     rule_map.register_rule_set('rule_1', rule_1)

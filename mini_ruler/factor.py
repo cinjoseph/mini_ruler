@@ -20,11 +20,11 @@ class FuncFactory:
         self.func_set = {}
 
     def register_module(self, func, func_name):
-        if self.func_set.has_key(func_name):
+        if func_name in self.func_set:
             raise self.RegisterError('Duplicate register func_set: %s' % func_name)
         self.func_set[func_name] = func
 
-    def register(self, func, func_name=None):
+    def register(self, func, func_name):
         if not hasattr(func, '__call__'):
             func = get_plugin_module(func)
         if not func_name:
@@ -32,7 +32,7 @@ class FuncFactory:
         self.register_module(func, func_name)
 
     def new(self, name, arg_list):
-        if not self.func_set.has_key(name):
+        if name not in self.func_set:
             raise self.RegisterError('No register func_set: %s' % name)
         rannable = self.func_set[name]
         return Func(rannable, arg_list)

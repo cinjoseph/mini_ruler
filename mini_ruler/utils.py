@@ -11,7 +11,7 @@ def level_print(l, string):
     for i in range(len(string)):
         string[i] = tmp + string[i]
     string = '\n'.join(string)
-    print string
+    print(string)
 
 
 def array_printable(l):
