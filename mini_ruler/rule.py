@@ -158,7 +158,7 @@ if __name__ == "__main__":
 
     rule_main = [
         "IF in_num_range(pkt.id1, 1, 10000) && pkt.id1 == 1 THEN accept()",
-        "IF in_num_range(pkt.id1, 1, 10000) && pkt.id1 == 2 THEN accept()",
+        "IF FALSE == exist(pkt.not_exist) THEN accept()",
         "IF in_num_range(pkt.id1, 1, 10000) && pkt.id1 == 2048 THEN GOTO('rule_1', __builtin_raw__)",
     ]
 
@@ -188,10 +188,11 @@ if __name__ == "__main__":
     rule_map = RuleMap('testRuleMap', 'main')
 
     # 注册条件匹配中的动作函数
-    rule_map.register_condition_func('plugins.in_num_range', 'in_num_range')
+    rule_map.register_condition_func('basic_action.in_num_range', 'in_num_range')
+    rule_map.register_condition_func('basic_action.exist', 'exist')
 
     # 注册匹配成功后的结果动作函数
-    rule_map.register_action_func('plugins.accept', 'accept')
+    rule_map.register_action_func('basic_action.accept', 'accept')
 
     rule_map.register_rule_set('main', rule_main)
     rule_map.register_rule_set('rule_1', rule_1)

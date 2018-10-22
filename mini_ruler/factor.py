@@ -3,10 +3,10 @@ import importlib
 
 
 def get_plugin_module(module_path):
-    module = module_path.rsplit('.', 1)
-    plugin_name = module[1]
-    module = importlib.import_module(module[0])
-    plugin = getattr(module, plugin_name, None)
+    m = module_path.rsplit('.', 1)
+    plugin_name = m[1]
+    m = importlib.import_module(m[0])
+    plugin = getattr(m, plugin_name, None)
     return plugin
 
 
@@ -80,15 +80,27 @@ class Var:
         return "VAR(%s)" % self.var
 
     def get_value(self, d):
-        if len(self.key_list) == 1 and self.key_list[0] == '__builtin_raw__':
-            return d
+        if len(self.key_list) == 1:
+            if self.key_list[0] == '__builtin_raw__':
+                return d
+            if self.key_list[0] == 'TRUE':
+                return True
+            if self.key_list[0] == 'FALSE':
+                return False
         value = d
         for key in self.key_list:
             try:
                 value = value[key]
             except KeyError:
-                raise VarNotExist(self.var)
+                return None
+                # raise VarNotExist(self.var)
         return value
+
+
+class NotOperator:
+
+    def __init__(self, v):
+        self.v = v
 
 
 class Operator:
