@@ -158,6 +158,7 @@ if __name__ == "__main__":
 
     rule_main = [
         "IF in_num_range(pkt.id1, 1, 10000) && pkt.id1 == 1 THEN accept()",
+        "IF NONE == pkt.not_exist THEN accept()",
         "IF FALSE == exist(pkt.not_exist) THEN accept()",
         "IF in_num_range(pkt.id1, 1, 10000) && pkt.id1 == 2048 THEN GOTO('rule_1', __builtin_raw__)",
     ]

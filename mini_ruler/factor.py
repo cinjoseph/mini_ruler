@@ -87,6 +87,12 @@ class Var:
                 return True
             if self.key_list[0] == 'FALSE':
                 return False
+            if self.key_list[0] == 'NONE':
+                return None
+
+        return self._get_value(d)
+
+    def _get_value(self, d):
         value = d
         for key in self.key_list:
             try:
