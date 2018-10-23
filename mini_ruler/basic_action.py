@@ -25,6 +25,3 @@ def exist(p):
     return True
 
 
-def accept():
-    print("Accept!!!")
-

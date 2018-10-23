@@ -10,6 +10,40 @@ def get_plugin_module(module_path):
     return plugin
 
 
+class FactorFactory:
+
+    def __init__(self):
+        self.func_factory = FuncFactory()
+
+    def register(self, func, func_name):
+        self.func_factory.register(func, func_name)
+
+    def create_factor(self, t, v):
+        """
+        转化 token 为 基础因子
+        :param t:
+        :param v:
+        :return:
+        """
+        if t in ['NUMBER', 'STRING']:
+            return v
+        elif t == 'VAR':
+            return Var(v)
+        elif t == 'FUNC':
+            func_name, arg_list = v
+            arg_list = [self.create_factor(*f) for f in arg_list]
+            return self.func_factory.new(func_name, arg_list)
+        elif t == 'RELATIONAL_OPERATOR' or t == 'LOGICAL_OPERATOR':
+            return Operator(t, v)
+        elif t == 'PAREN':
+            return [self.create_factor(*f) for f in v]
+        else:
+            raise Exception('(%s,%s)' % (str(t), str(v)))
+
+    def new(self, t, v):
+        return self.create_factor(t, v)
+
+
 class FuncFactory:
 
     class RegisterError(Exception):
@@ -137,35 +171,4 @@ class Operator:
             return x and y
         else:
             Exception('Unkonw operator %s ' % (str(self.t), str(self.v)))
-
-
-class FactorFactory:
-
-    def __init__(self):
-        self.func_factory = FuncFactory()
-
-    def new(self, t, v):
-        return self.create_factor(t, v)
-
-    def create_factor(self, t, v):
-        """
-        转化 token 为 基础因子
-        :param t:
-        :param v:
-        :return:
-        """
-        if t in ['NUMBER', 'STRING']:
-            return v
-        elif t == 'VAR':
-            return Var(v)
-        elif t == 'FUNC':
-            func_name, arg_list = v
-            arg_list = [self.create_factor(*f) for f in arg_list]
-            return self.func_factory.new(func_name, arg_list)
-        elif t == 'RELATIONAL_OPERATOR' or t == 'LOGICAL_OPERATOR':
-            return Operator(t, v)
-        elif t == 'PAREN':
-            return [self.create_factor(*f) for f in v]
-        else:
-            raise Exception('(%s,%s)' % (str(t), str(v)))
 
