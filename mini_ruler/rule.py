@@ -49,7 +49,7 @@ class ConditionMap(object):
 
 
 def split_rule_if_else(rule):
-    pattern_if_then_else = r"^IF (?P<cond>[\S ]+) THEN (?P<action>[\S ]+) (?=ELSE)ELSE (?P<else_action>[\S ]+)END"
+    pattern_if_then_else = r"^IF (?P<cond>[\S ]+) THEN (?P<action>[\S ]+) (?=ELSE)ELSE (?P<else_action>[\S ]+) END"
     match = re.match(pattern_if_then_else, rule)
     if match:
         gdict = match.groupdict()
