@@ -4,11 +4,7 @@
 import re
 from lexer import RuleLexer
 from factor import Var, Func, FactorFactory
-
-import copy
-import datetime
-import pprint
-from utils import array_printable
+import basic_action
 
 
 class ConditionMap(object):
@@ -131,9 +127,9 @@ class Ruler:
         self.init()
 
     def init(self):
-        self.register_condition_func('basic_action.in_num_range', 'in_num_range')
-        self.register_condition_func('basic_action.exist', 'exist')
-        self.register_condition_func('basic_action.re_match', 're_match')
+        self.register_condition_func(basic_action.in_num_range, 'in_num_range')
+        self.register_condition_func(basic_action.exist, 'exist')
+        self.register_condition_func(basic_action.re_match, 're_match')
 
         self.register_action_func(self.__bulitin_goto_rule__, 'GOTO')
 
@@ -166,6 +162,7 @@ class Ruler:
 
 
 if __name__ == "__main__":
+    import pprint
 
     rule_main = [
         "IF exist(pkt.id1) THEN print('test print 1')",
