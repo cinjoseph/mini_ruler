@@ -48,6 +48,21 @@ class ConditionMap(object):
         return stack[0]
 
 
+def split_rule_if_else(rule):
+    pattern_if_then_else = r"^IF (?P<cond>[\S ]+) THEN (?P<action>[\S ]+) (?=ELSE)ELSE (?P<else_action>[\S ]+)END"
+    match = re.match(pattern_if_then_else, rule)
+    if match:
+        gdict = match.groupdict()
+        return gdict['cond'],  gdict['action'], gdict['else_action']
+    pattern_if_then = r"^IF (?P<cond>[\S ]+) THEN (?P<action>[\S ]+) END"
+    match = re.match(pattern_if_then, rule)
+    if match:
+        gdict = match.groupdict()
+        return gdict['cond'],  gdict['action'], None
+    if match == None:
+        raise Exception("Error rule %s" % rule)
+
+
 def split_rule(rule):
     pattern = r"^IF (?P<cond>[\S ]+) THEN (?P<action>[\S ]+)"
     reg = re.compile(pattern)
