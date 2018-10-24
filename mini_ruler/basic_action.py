@@ -23,5 +23,3 @@ def exist(p):
     if not p:
         return False
     return True
-
-

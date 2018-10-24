@@ -2,7 +2,7 @@
 
 
 import re
-from lexer import RuleLexer, tokens_polymerize, relational_operator_polymerize
+from lexer import RuleLexer
 from factor import Var, Func, FactorFactory
 
 import copy
@@ -20,10 +20,7 @@ class ConditionMap(object):
     def match(self, p):
         factors_map = self.factors_map
         match_result = self._match(factors_map, p)
-        if type(match_result) == int or type(match_result) == float: return False if match_result == 0 else True
-        elif type(match_result) == bool: return match_result
-        elif type(match_result) == str: return False if match_result == '' else True
-        else:raise Exception("Unknow match result type %s" % type(match_result))
+        return match_result
 
     def _match(self, factors_map, p):
         stack = []
@@ -34,9 +31,9 @@ class ConditionMap(object):
                 if type(f) == list:
                     f = self._match(f, p)
                 elif isinstance(f, Var):
-                    f = f.get_value(p)
+                    f = f.value(p)
                 elif isinstance(f, Func):
-                    f = f.do(p)
+                    f = f.value(p)
                 stack.append(f)
             elif len(stack) == 1:
                 stack.append(f)
@@ -66,11 +63,9 @@ def split_rule(rule):
 
 
 def lexer_build(s, rule_lexer, factor_factory):
-    tokens = rule_lexer.analyse(s)
-    polymerized_tokens = tokens_polymerize(tokens)
-    factors = [factor_factory.new(tok[0], tok[1]) for tok in polymerized_tokens]
-    ret = relational_operator_polymerize(factors)
-    return ret
+    tokens = rule_lexer.parse_toekns(s)
+    factors = [factor_factory.new(tok[0], tok[1]) for tok in tokens]
+    return factors
 
 
 def build_rule(rule, rule_lexer, cond_factor_factory, act_factor_factory):
@@ -113,7 +108,7 @@ class RuleSet:
             print("In rule set '%s' run '%s'. is result matching? %s" % (self.name, rule, result))
             if not result:
                 continue
-            action_result = action.do(d)
+            action_result = action.value(d)
             if action_result: return action_result
         return None
 
@@ -136,7 +131,12 @@ class Ruler:
         self.init()
 
     def init(self):
+        self.register_condition_func('basic_action.in_num_range', 'in_num_range')
+        self.register_condition_func('basic_action.exist', 'exist')
+        self.register_condition_func('basic_action.re_match', 're_match')
+
         self.register_action_func(self.__bulitin_goto_rule__, 'GOTO')
+
 
     def register_rule_set(self, name, rule_list):
         if name in self.rule_map:
@@ -162,15 +162,16 @@ class Ruler:
 
     def __bulitin_goto_rule__(self, name, d):
         print("GOTO %s" % name)
-        self._entry(name, d)
+        return self._entry(name, d)
 
 
 if __name__ == "__main__":
 
     rule_main = [
-        "IF NONE == pkt.not_exist THEN drop()",
-        # "IF FALSE == exist(pkt.not_exist) THEN accept()",
-        # "IF in_num_range(pkt.id1, 1, 10000) && pkt.id1 == 2048 THEN GOTO('rule_1', __builtin_raw__)",
+        "IF exist(pkt.id1) THEN print('test print 1')",
+        "IF exist(pkt.id1) THEN print('test print 2')",
+        "IF exist(pkt.id1) THEN print('test print 3')",
+        "IF in_num_range(pkt.id1, 1, 10000) && pkt.id1 == 2048 THEN GOTO('rule_1', __builtin_raw__)",
     ]
 
     rule_1 = [
@@ -178,7 +179,7 @@ if __name__ == "__main__":
     ]
 
     rule_2 = [
-        "IF in_num_range(pkt.id1, 1, 10000) && pkt.id3 == 22 THEN GOTO('rule_3', __builtin_raw__)",
+        "IF in_num_range(pkt.id1, 1, 10000) && pkt.id3 == 22 THEN accept()",
     ]
 
 
@@ -194,9 +195,6 @@ if __name__ == "__main__":
     rule_map = Ruler('testRuleMap', 'main')
 
     # 注册条件匹配中的动作函数
-    rule_map.register_condition_func('basic_action.in_num_range', 'in_num_range')
-    rule_map.register_condition_func('basic_action.exist', 'exist')
-    rule_map.register_condition_func('basic_action.re_match', 're_match')
 
     # 注册匹配成功后的结果动作函数
     def accept():
@@ -207,15 +205,22 @@ if __name__ == "__main__":
         print("DROP !!!!")
         return -1, (), ()
 
+    def print_s(s):
+        print("print: %s" % s)
+
     rule_map.register_action_func(accept, 'accept')
     rule_map.register_action_func(drop, 'drop')
+    rule_map.register_action_func(print_s, 'print')
 
     # 注册规则
     rule_map.register_rule_set('main', rule_main)
     rule_map.register_rule_set('rule_1', rule_1)
     rule_map.register_rule_set('rule_2', rule_2)
 
+
     ret = rule_map.entry(p)
+
+    pprint.pprint(p)
     print ret
 
 
