@@ -1,0 +1,12 @@
+
+main:
+
+    IF FALSE THEN __goto__('rule_1', __builtin_raw__) ELSE drop() END
+
+    IF exist(pkt.not_exist) && pkt.id1 == 2048 THEN __goto__('rule_1', __builtin_raw__) ELSE print('test') END
+
+rule_1:
+    IF in_num_range(pkt.id1, 1, 10000) && pkt.id2 == 778 THEN __goto__('rule_2', __builtin_raw__) END
+
+rule_2:
+    IF in_num_range(pkt.id1, 1, 10000) && pkt.id3 == 22 THEN accept() END
