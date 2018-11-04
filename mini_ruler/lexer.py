@@ -3,6 +3,7 @@
 import ply.lex as lex
 
 
+
 class RuleLexer:
 
     def t_ANY_newline(self, t):
@@ -105,22 +106,15 @@ class RuleLexer:
         tok = ('CALL', (start_tok[1], tuple(args)))
         return tok
 
-
     def parse_toekns(self, data):
         try:
             self.lexer.input(data)
             lex_tokens = []
             for tok in self.lexer:
-                # DEBUG PRINT
-                # print(self.lexer.lexstatestack, self.lexer.lexstate, (tok.type, tok.value))
                 tok = (tok.type, tok.value)
-                print tok
-
                 if tok[0] == 'FUNCSTART':
                     tok = self.parse_call(tok)
-
                 lex_tokens.append(tok)
-
         except(lex.LexError) as e:
             print("Error: %s" % e)
             print(data)
@@ -133,38 +127,3 @@ class RuleLexer:
 
 
 
-if __name__ == "__main__":
-
-    from pprint import pprint
-
-    from calc import calc
-
-    from ruler_env import RulerEnv
-
-    from basic_action import re_match
-
-    lexer = RuleLexer()
-
-    env = RulerEnv()
-
-    env.set_var('re_match', re_match)
-
-
-
-    # data = 'a.b == "test" + "str" && 1 + 2047 == 2048 '
-    data = 're_match("\d", "1")'
-
-    tokens = lexer.parse_toekns(data)
-
-
-    # print
-    # pprint(tokens)
-    # print
-
-    env.push()
-
-    env.set_var('a', {'b': 'teststr'})
-
-    print calc(env, tokens)
-
-    env.pop()

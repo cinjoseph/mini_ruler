@@ -1,46 +1,48 @@
-from mini_ruler.ruler import Ruler, parse_rule_file
+# -*- coding:utf-8 -*-
 from pprint import pprint
+
+from mini_ruler.env import RulerEnv
+from mini_ruler.calc import calc
+from mini_ruler.lexer import RuleLexer
+
+from mini_ruler.basic_action import re_match
+
+
+def test_accept():
+    print("ACCEPT !!!!")
+    return 0, (), ()
+
+
+def test_drop():
+    print("DROP !!!!")
+    return -1, (), ()
+
+
+def test_print_s(s):
+    print("print: %s" % s)
+
 
 if __name__ == "__main__":
 
-    p = {
-        'pkt': {
-            'id1': 2048,
-            'id2': 778,
-            'id3': 22,
-            's': 'string',
-            'level1': [1, 2, 3]
-        }
-    }
+        lexer = RuleLexer()
 
-    print "input packet is :"
-    pprint(p)
-    print ""
-
-    ruler = Ruler('testRuleMap')
-
-    def accept():
-        print("ACCEPT !!!!")
-        return 0, (), ()
-
-    def drop():
-        print("DROP !!!!")
-        return -1, (), ()
-
-    def print_s(s):
-        print("print: %s" % s)
-
-    ruler.register_func(accept, 'accept')
-    ruler.register_func(drop, 'drop')
-    ruler.register_func(print_s, 'print')
-
-    rules = parse_rule_file('./test.rule')
-    for rule_name, rules in rules.items():
-        ruler.register_rule_set(rule_name, rules)
+        # data = 'a.b == "test" + "str" && 1 + 2047 == 2048 '
+        data = 're_match("\d", "1")'
 
 
+        tokens = lexer.parse_toekns(data)
 
-    ret = ruler.entry('main', p)
 
+        env = RulerEnv()
 
-    print ret
+        # resiger action function
+        env.set_var('re_match', re_match)
+
+        env.push()
+
+        env.set_var('a', {'b': 'teststr'})
+
+        print calc(env, tokens)
+
+        env.pop()
+

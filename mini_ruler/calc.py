@@ -127,7 +127,7 @@ def calc(env, tokens):
         stack.operands.append(result)
 
     def flush_out_stack():
-        print "flush_out_stack"
+        # print "flush_out_stack"
         while len(stack.operators):
             print("optr: " + str(stack.operators))
             print("oprd: " + str(stack.operands))
@@ -145,7 +145,7 @@ def calc(env, tokens):
     tok = tok_iter.next()
     while True:
         try:
-            print tok
+            # print tok
 
             if tok[0] in ['INTEGER', 'FLOAT', 'STRING', 'BOOL']:
                 stack.operands.append(tok)
