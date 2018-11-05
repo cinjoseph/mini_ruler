@@ -1,3 +1,10 @@
 
 main:
-    IF FALSE THEN __goto__('rule_1', __builtin_raw__) ELSE drop() END
+    IF re_match("teststr", p.str) && p.num1==2048-1 THEN __goto__("rule_1", p)
+
+
+rule_1:
+    IF p.num2==2*5 THEN __goto__("rule_2", p)
+
+rule_2:
+    IF in_num_range(p.num3, 90, 100) THEN test_drop()

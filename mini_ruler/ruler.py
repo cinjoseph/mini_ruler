@@ -1,9 +1,64 @@
 # -*- coding:utf-8 -*-
 
 import re
+from calc import calc
 from lexer import RuleLexer
-from factor import Var, Func, FactorFactory
 import basic_action
+
+
+class RulerEnvError(Exception):
+    def __init__(self, err):
+        Exception.__init__(self, err)
+
+class RulerEnv:
+
+    def __init__(self):
+        self.variables_stack = [{}]
+        self.stack_top = self.variables_stack[-1]
+
+    def push(self):
+        self.variables_stack.append({})
+        self.stack_top = self.variables_stack[-1]
+
+    def pop(self):
+        if len(self.variables_stack) == 1:
+            raise Exception('variables_stack is 1, can not pop variable stack, ')
+        self.variables_stack.pop()
+        self.stack_top = self.variables_stack[-1]
+
+    def foreach_get_var(self, var_str):
+        for level in self.variables_stack[::-1]:
+            var = level.get(var_str, None)
+            if var:  break
+        else:
+            raise Exception("name '%s' is not defind" % var_str)
+        return var
+
+    def set_var(self, var_name, value):
+        if value != None:
+            self.stack_top[var_name] = value
+
+    def set_global_var(self, var_name, value):
+        self.variables_stack[0][var_name] = value
+
+    def get_global_var(self, var_name):
+        return self.variables_stack[0].get(var_name, None)
+
+    def get_var(self, var_str):
+        var_str_list = var_str.split('.')
+        var_name, var_list = var_str_list[0], var_str_list[1:]
+
+        var = self.foreach_get_var(var_name)
+
+        result, s = var, var_str_list[0]
+        for k in var_list:
+            v = result.get(k, None)
+            if not v:
+                raise RulerEnvError("No name '%s' found in %s " % (k, s))
+            result = v
+            s += '.%s' % k
+
+        return result
 
 
 def parse_rule_file(path):
@@ -42,165 +97,73 @@ def parse_rule_file(path):
     return None
 
 
-def split_rule_if_else(rule):
-    rule_pattern  = r'IF (?P<cond>[\S ]+) THEN '
-    rule_pattern += r'(((?P<then_action>[\S ]+) (?=ELSE)ELSE (?P<else_action>[\S ]+))|(?P<action>[\S ]+))'
-    rule_pattern += r' END'
-    match_reg = re.match(rule_pattern, rule)
-    if not match_reg:
-        raise Exception("Error rule %s" % rule)
-    gdict = match_reg.groupdict()
-    if gdict['action'] and not gdict['else_action'] and not gdict['then_action']:
-        return gdict['cond'], gdict['action'], None
-    if not gdict['action'] and gdict['else_action'] and gdict['then_action']:
-        return gdict['cond'], gdict['then_action'], gdict['else_action']
-    raise Exception("Error rule %s" % rule)
-
-
 def split_rule(rule):
     pattern = r"^IF (?P<cond>[\S ]+) THEN (?P<action>[\S ]+)"
     reg = re.compile(pattern)
-    match = reg.result(rule)
+    match = reg.match(rule)
     if not match:
         return None
     match = match.groupdict()
     return match['cond'], match['action']
 
 
-def lexer_build(s, rule_lexer, factor_factory):
-    tokens = rule_lexer.parse_toekns(s)
-    factors = [factor_factory.new(tok[0], tok[1]) for tok in tokens]
-    return factors
-
-
-def build_rule(rule, rule_lexer, factor_factory):
-    cond_str, then_str, else_str = split_rule_if_else(rule)
-
-    factors_map = lexer_build(cond_str, rule_lexer, factor_factory)
-    condition = FactorMap(cond_str, factors_map)
-
-    factors_map = lexer_build(then_str, rule_lexer, factor_factory)
-    then_action = FactorMap(cond_str, factors_map)
-
-    else_action = None
-    if else_str:
-        factors_map = lexer_build(else_str, rule_lexer, factor_factory)
-        else_action = FactorMap(cond_str, factors_map)
-
-    return rule, condition, then_action, else_action
-
-
-class FactorMap(object):
-
-    def __init__(self, s, factors_map):
-        self.s = s
-        self.factors_map = factors_map
-
-    def result(self, p):
-        factors_map = self.factors_map
-        match_result = self._result(factors_map, p)
-        return match_result
-
-    def _result(self, factors_map, p):
-        stack = []
-        # print array_printable(factors_map)
-        for f in factors_map:
-            # print f,"stack = %s" % array_printable(stack)
-            if len(stack) == 0 or len(stack) == 2:
-                if type(f) == list:
-                    f = self._result(f, p)
-                elif isinstance(f, Var):
-                    f = f.value(p)
-                elif isinstance(f, Func):
-                    f = f.value(p)
-                stack.append(f)
-            elif len(stack) == 1:
-                stack.append(f)
-
-            if len(stack) == 3:
-                operand_1, operator, operand_2 = stack[0], stack[1], stack[2]
-                ret = operator.calc(operand_1, operand_2)
-                stack = [ret]
-
-            if len(stack) > 3:
-                raise Exception("Error...")
-
-        if len(stack) != 1:
-            raise Exception("Error Rule: %s" % self.s)
-
-        return stack[0]
-
-
-class RuleSet:
-
-    def __init__(self, name, rule_list, rule_lexer, factor_factory):
-        self.name = name
-        self.rule_obj_set = []
-        for rule in rule_list:
-            rule_obj = build_rule(rule, rule_lexer, factor_factory)
-            self.rule_obj_set.append(rule_obj)
-
-    def foreach(self, d):
-        """
-        遍历规则集，获得规则集的结果。
-        每条规则由 Condition 和 Action 组成， Condition 若匹配中则执行 Action
-        若Action有返回值，则返回Action的返回值，不再向后匹配，直接返回 Action 的返回值
-        若Action执行未有返回值或返回值为None，继续向后匹配
-        :param d:
-        :return:
-            None 可能是未匹配中condition，也可能是condition命中的action未有返回值
-        """
-        for rule_obj in self.rule_obj_set:
-            rule, condition, then_action, else_action = rule_obj[0], rule_obj[1], rule_obj[2], rule_obj[3]
-            result = condition.result(d)
-            print("In rule set '%s' run '%s'. is result matching? %s" % (self.name, rule, result))
-            action_result = None
-            if result is True:
-                action_result = then_action.result(d)
-            else:
-                if else_action:
-                    action_result = else_action.result(d)
-            if action_result:
-                return action_result
-        return None
+class RulerError(Exception):
+    def __init__(self, err):
+        Exception.__init__(self, err)
 
 
 class Ruler:
 
-    class NoRuleSet(Exception):
-        pass
-
-    class RuleSetAlreadyExist(Exception):
-        pass
-
-    def __init__(self, name):
-        self.rule_map = {}
-        self.name = name
+    def __init__(self):
+        self.rule_set_list = {}
+        self.env = RulerEnv()
         self.lexer = RuleLexer()
-        self.factor_factory = FactorFactory()
-        self.init()
+        self.init_builtin_action()
 
-    def init(self):
-        self.register_func(self.__bulitin_goto_rule__, '__goto__')
+    def init_builtin_action(self):
+        self.register_action('__goto__', self.__bulitin_goto_rule__)
+        self.register_action('exist', basic_action.exist)
+        self.register_action('re_match', basic_action.re_match)
+        self.register_action('in_num_range', basic_action.in_num_range)
 
-        self.register_func(basic_action.exist, 'exist')
-        self.register_func(basic_action.re_match, 're_match')
-        self.register_func(basic_action.in_num_range, 'in_num_range')
+    def build_rule(self, rule):
+        cond_str, then_str = split_rule(rule)
+        cond_tokens = self.lexer.parse_tokens(cond_str)
+        then_tokens = self.lexer.parse_tokens(then_str)
+        return rule, cond_tokens, then_tokens
 
     def register_rule_set(self, name, rule_list):
-        if name in self.rule_map:
-            raise self.RuleSetAlreadyExist()
-        self.rule_map[name] = RuleSet(name, rule_list, self.lexer,
-                                      self.factor_factory)
-    def register_func(self, f, name):
-        self.factor_factory.register(f, name)
+        if name in self.rule_set_list:
+            raise RulerError("can not resiger rule set '%s' reason: already exist")
+        self.rule_set_list[name] = [self.build_rule(rule) for rule in rule_list]
 
-    def entry(self, name, d):
-        if name not in self.rule_map:
-            raise self.NoRuleSet()
-        rule_set = self.rule_map[name]
-        return rule_set.foreach(d)
+    def register_action(self, name, action):
+        if self.env.get_global_var(name):
+            raise RulerError("can not resiger action '%s' reason: already exist")
+        self.env.set_global_var(name, action)
 
-    def __bulitin_goto_rule__(self, name, d):
-        print("__goto__ %s" % name)
-        return self.entry(name, d)
+    def foreach_rule_set(self, name, d):
+        """
+        遍历规则集，获得规则集的结果。
+        每条规则由 Condition 和 Action 组成， Condition 若匹配中则执行 Action, 并返回Action的返回值作为Rule的返回值
+        """
+        for rule_obj in self.rule_set_list[name]:
+            rule, cond_tokens, then_tokens = rule_obj[0], rule_obj[1], rule_obj[2]
+            result = calc(self.env, cond_tokens)
+            if result:
+                return calc(self.env, then_tokens)
+
+    def entry(self, name, p):
+        if name not in self.rule_set_list:
+            raise RulerError("Rule set '%s' does not exist" % name)
+        self.env.push()
+        self.env.set_var('p', p)
+        result = self.foreach_rule_set(name, p)
+        self.env.pop()
+        return result
+
+    def __bulitin_goto_rule__(self, name, p):
+        # print("__goto__ %s" % name)
+        return self.entry(name, p)
+
+

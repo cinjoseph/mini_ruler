@@ -43,8 +43,9 @@ def create_token(x):
     if type(x) == float: return ('FLOAT', x)
     if type(x) == str: return ('STRING', x)
     if type(x) == bool:  return ('BOOL', x)
-    # if type(x) == type(None):  return ('None', None)
-    raise Exception('Unknow token type %s' % type(x))
+    if type(x) == type(None):  return ('NULL', None)
+    if type(x) == tuple:  return ('TUPLE', x)
+    raise Exception('Unknow token type %s %s' % (type(x), x))
 
 
 def token_calc(env, op, x, y=None):
@@ -54,11 +55,8 @@ def token_calc(env, op, x, y=None):
 
     result = baisc_calc(op, x, y)
 
-    print "Result !!!!!!!!!! %s" % str(result)
-
     result = create_token(result)
-
-    raise Exception("result error type: %s" % type(result))
+    return result
 
 class OperatorError(Exception):
     def __init__(self, err):
@@ -118,7 +116,7 @@ def calc(env, tokens):
     stack = CalcStack()
 
     def calc_stack_top():
-        print "calc_stack_top"
+        # print "calc_stack_top"
         optr = stack.operators.pop()
         oprd2, oprd1 = stack.operands.pop(), stack.operands.pop()
 
@@ -129,11 +127,11 @@ def calc(env, tokens):
     def flush_out_stack():
         # print "flush_out_stack"
         while len(stack.operators):
-            print("optr: " + str(stack.operators))
-            print("oprd: " + str(stack.operands))
+            # print("optr: " + str(stack.operators))
+            # print("oprd: " + str(stack.operands))
             calc_stack_top()
-            print("optr: " + str(stack.operators))
-            print("oprd: " + str(stack.operands))
+            # print("optr: " + str(stack.operators))
+            # print("oprd: " + str(stack.operands))
 
         if len(stack.operands) > 1:
             raise Exception('Stack is not balance')
@@ -147,10 +145,10 @@ def calc(env, tokens):
         try:
             # print tok
 
-            if tok[0] in ['INTEGER', 'FLOAT', 'STRING', 'BOOL']:
+            if tok[0] in ['INTEGER', 'FLOAT', 'STRING', 'BOOL', 'NULL']:
                 stack.operands.append(tok)
                 tok = tok_iter.next()
-            if tok[0] in ['ID', 'CALL']:
+            elif tok[0] in ['ID', 'CALL']:
                 stack.operands.append(create_token(get_token_value(env, tok)))
                 tok = tok_iter.next()
             elif tok[0] in ['LOGICAL_OPERATOR', 'RELATIONAL_OPERATOR', 'ARITHMEITC_OPERATOR']:
@@ -171,9 +169,6 @@ def calc(env, tokens):
                 operands, _ = stack.pop()
                 stack.operands.append(operands)
                 tok = tok_iter.next()
-            elif tok[0] == 'COMMA':
-                flush_out_stack()
-                break
             else:
                 raise Exception('Unknow tok %s' % str(tok))
         except(StopIteration):
@@ -185,6 +180,4 @@ def calc(env, tokens):
             # print("oprd: " + str(stack.operands) )
             pass
 
-
-    print
-    return stack.operands[0]
+    return stack.operands[0][1]

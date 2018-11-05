@@ -22,6 +22,7 @@ class RuleLexer:
     )
 
     tokens = (
+        'NOT_OPERATOR',
         'LOGICAL_OPERATOR',
         'RELATIONAL_OPERATOR',
         'ARITHMEITC_OPERATOR',
@@ -32,16 +33,14 @@ class RuleLexer:
         'LPAREN',
         'RPAREN',
 
-        # 'COMMA',
-
         'ID',
 
         'INTEGER',
         'STRING',
         'BOOL',
-        # 'NULL',
     )
 
+    t_ANY_NOT_OPERATOR          = r'!'
     t_ANY_LOGICAL_OPERATOR      = r'&&|\|\|'
     t_ANY_RELATIONAL_OPERATOR   = r'==|\!=|>=*|<=*|~='
     t_ANY_ARITHMEITC_OPERATOR   = r'\+|-|\*|/'
@@ -49,18 +48,11 @@ class RuleLexer:
     t_ANY_LPAREN  = r'\('
     t_ANY_RPAREN  = r'\)'
 
-    # t_func_COMMA = r','
-
 
     def t_ANY_BOOL(self, t):
         r'\b(TRUE|FALSE)\b'
         t.value = True if t.value == "TRUE" else False
         return t
-
-    # def t_ANY_NULL(self, t):
-    #     r'\bNULL\b'
-    #     t.value = None
-    #     return t
 
     def t_ANY_INTEGER(self, t):
         r'\d+'
@@ -87,7 +79,6 @@ class RuleLexer:
 
     def t_ANY_ID(self, t):
         r'[a-zA-Z_@][\w_-]*(\.[a-zA-Z_@][\w_-]*)*'
-        # r'[a-zA-Z_][\w_-]*'
         return t
 
     def parse_call(self, start_tok):
@@ -106,7 +97,7 @@ class RuleLexer:
         tok = ('CALL', (start_tok[1], tuple(args)))
         return tok
 
-    def parse_toekns(self, data):
+    def parse_tokens(self, data):
         try:
             self.lexer.input(data)
             lex_tokens = []
