@@ -29,13 +29,14 @@ class RulerEnv:
     def foreach_get_var(self, var_str):
         for level in self.variables_stack[::-1]:
             var = level.get(var_str, None)
-            if var:  break
+            if var is not None:
+                break
         else:
             raise Exception("name '%s' is not defind" % var_str)
         return var
 
     def set_var(self, var_name, value):
-        if value != None:
+        if value is not None:
             self.stack_top[var_name] = value
 
     def set_global_var(self, var_name, value):
@@ -138,8 +139,8 @@ class Ruler:
         self.rule_set_list[name] = [self.build_rule(rule) for rule in rule_list]
 
     def register_action(self, name, action):
-        if self.env.get_global_var(name):
-            raise RulerError("can not resiger action '%s' reason: already exist")
+        if self.env.get_global_var(name) is not None:
+            raise RulerError("can not resiger action '%s' reason: already exist" % name)
         self.env.set_global_var(name, action)
 
     def foreach_rule_set(self, name, d):
@@ -165,5 +166,3 @@ class Ruler:
     def __bulitin_goto_rule__(self, name, p):
         # print("__goto__ %s" % name)
         return self.entry(name, p)
-
-

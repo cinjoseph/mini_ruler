@@ -60,7 +60,7 @@ class RuleLexer:
         return t
 
     def t_ANY_STRING(self, t):
-        r'\"[^\"]*\"'
+        r'(\"[^\"]*\"|\'[^\']*\')'
         t.value = t.value[1:-1]
         return t
 

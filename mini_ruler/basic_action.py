@@ -8,6 +8,7 @@ def re_match(pattern, s):
         return False
     if type(pattern) != str:
         return False
+
     if re.match(pattern, s):
         return True
     return False
