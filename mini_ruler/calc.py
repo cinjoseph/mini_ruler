@@ -39,6 +39,7 @@ def get_token_value(env, tok):
 
 
 def create_token(x):
+    if type(x) == unicode: x = str(x)
     if type(x) == int: return ('INTEGER', x)
     if type(x) == float: return ('FLOAT', x)
     if type(x) == str: return ('STRING', x)

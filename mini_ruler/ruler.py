@@ -152,7 +152,7 @@ class Ruler:
             rule, cond_tokens, then_tokens = rule_obj[0], rule_obj[1], rule_obj[2]
             result = calc(self.env, cond_tokens)
             if result:
-                return calc(self.env, then_tokens)
+                return (calc(self.env, then_tokens), rule)
 
     def entry(self, name, p):
         if name not in self.rule_set_list:

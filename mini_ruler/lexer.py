@@ -61,7 +61,7 @@ class RuleLexer:
 
     def t_ANY_STRING(self, t):
         r'(\"[^\"]*\"|\'[^\']*\')'
-        t.value = t.value[1:-1]
+        t.value = str(t.value[1:-1])
         return t
 
     def t_ANY_begin_func(self, t):
