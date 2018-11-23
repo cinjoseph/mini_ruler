@@ -126,6 +126,7 @@ class Ruler:
         self.register_action('exist', basic_action.exist)
         self.register_action('re_match', basic_action.re_match)
         self.register_action('in_num_range', basic_action.in_num_range)
+        self.register_action('in_ip_range', basic_action.in_ip_range)
 
     def build_rule(self, rule):
         cond_str, then_str = split_rule(rule)

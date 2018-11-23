@@ -1,7 +1,14 @@
 # -*- coding:utf-8 -*-
 
 import re
+import ipaddr
 
+def in_ip_range(ip, ip_range):
+    ipNet = ipaddr.IPv4Network(ip_range)
+    ip = ipaddr.IPv4Address(ip)
+    if ip in ipNet:
+        return True
+    return False
 
 def re_match(pattern, s):
     if type(s) != str:

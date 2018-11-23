@@ -1,5 +1,6 @@
 
 main:
+	IF in_ip_range("192.168.1.100", "192.168.1.0/24") THEN test_accept()
     IF re_match("teststr", p.str) && p.num1==2048-1 THEN __goto__("rule_1", p)
 
 
