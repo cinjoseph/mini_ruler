@@ -52,7 +52,7 @@ def create_token(x):
 def token_calc(env, op, x, y=None):
     op = op[1]
     x = get_token_value(env, x)
-    y = get_token_value(env, y)
+    y = get_token_value(env, y) if y else None
 
     result = baisc_calc(op, x, y)
 
@@ -119,9 +119,10 @@ def calc(env, tokens):
     def calc_stack_top():
         # print "calc_stack_top"
         optr = stack.operators.pop()
-        oprd2, oprd1 = stack.operands.pop(), stack.operands.pop()
-
-        # print optr, oprd1, oprd2
+        if optr[0] in ['NOT_OPERATOR']: # 单目运算符
+            oprd2, oprd1 = None, stack.operands.pop()
+        else: # 双目运算符
+            oprd2, oprd1 = stack.operands.pop(), stack.operands.pop()
         result = token_calc(env, optr, oprd1, oprd2)
         stack.operands.append(result)
 
@@ -138,7 +139,6 @@ def calc(env, tokens):
             raise Exception('Stack is not balance')
         result.append(stack.operands[0])
 
-
     tok_iter = iter(tokens)
 
     tok = tok_iter.next()
@@ -152,7 +152,7 @@ def calc(env, tokens):
             elif tok[0] in ['ID', 'CALL']:
                 stack.operands.append(create_token(get_token_value(env, tok)))
                 tok = tok_iter.next()
-            elif tok[0] in ['LOGICAL_OPERATOR', 'RELATIONAL_OPERATOR', 'ARITHMEITC_OPERATOR']:
+            elif tok[0] in ['LOGICAL_OPERATOR', 'RELATIONAL_OPERATOR', 'ARITHMEITC_OPERATOR', 'NOT_OPERATOR']:
                 if not len(stack.operators):
                     stack.operators.append(tok)
                     tok = tok_iter.next()
