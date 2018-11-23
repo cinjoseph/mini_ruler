@@ -54,8 +54,9 @@ class RulerEnv:
         result, s = var, var_str_list[0]
         for k in var_list:
             v = result.get(k, None)
-            if not v:
-                raise RulerEnvError("No name '%s' found in %s " % (k, s))
+            if v == None:
+                return None
+                #raise RulerEnvError("No name '%s' found in %s " % (k, s))
             result = v
             s += '.%s' % k
 

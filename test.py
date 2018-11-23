@@ -42,7 +42,8 @@ if __name__ == "__main__":
         'num1': 2047,
         'num2': 10,
         'num3': 99,
-        'ip': "192.168.1.100"
+        'ip': "192.168.1.100",
+        'tags': {'est':{}}
     }
     result = ruler.entry('main', d)
 

@@ -44,8 +44,12 @@ def create_token(x):
     if type(x) == float: return ('FLOAT', x)
     if type(x) == str: return ('STRING', x)
     if type(x) == bool:  return ('BOOL', x)
-    if type(x) == type(None):  return ('NULL', None)
-    if type(x) == tuple:  return ('TUPLE', x)
+    
+    # 目前还不支持 None, list, dict, tple 等类型, 做特殊处理
+    # 当获取到None时， 为False
+    if type(x) == type(None):  return ('BOOL', False)
+    # 为了只有一个id变量的时候，获取到这些的空值导致判断结果为False
+    if type(x) in [dict, list, tuple]:  return ('BOOL', True)
     raise Exception('Unknow token type %s %s' % (type(x), x))
 
 
