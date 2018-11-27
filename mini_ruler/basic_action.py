@@ -3,10 +3,11 @@
 import re
 import ipaddr
 
-def in_ip_range(ip, ip_range):
-    ipNet = ipaddr.IPv4Network(ip_range)
+
+def ip_in_net(ip, ip_range):
+    net = ipaddr.IPv4Network(ip_range)
     ip = ipaddr.IPv4Address(ip)
-    if ip in ipNet:
+    if ip in net:
         return True
     return False
 
@@ -21,7 +22,7 @@ def re_match(pattern, s):
     return False
 
 
-def in_num_range(x, low, high):
+def num_in_range(x, low, high):
     if high >= x >= low:
         return True
     return False
