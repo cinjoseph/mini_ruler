@@ -229,7 +229,6 @@ def calc(env, tokens):
             flush_out_stack()
             break
 
-
     # print stack.operands_stack_top()
     result = get_token_value(env, stack.operands_stack_top())
     # print result

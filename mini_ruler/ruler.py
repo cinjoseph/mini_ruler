@@ -119,6 +119,10 @@ class RulerError(Exception):
         Exception.__init__(self, err)
 
 
+class RulerNoMatch(Exception):
+    pass
+
+
 class Ruler:
 
     def __init__(self):
@@ -165,6 +169,7 @@ class Ruler:
             result = calc(self.env, cond_tokens)
             if result:
                 return (calc(self.env, then_tokens), rule)
+        raise RulerNoMatch
 
     def entry(self, name, p):
         if name not in self.rule_set_list:
