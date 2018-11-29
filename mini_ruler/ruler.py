@@ -55,6 +55,8 @@ class RulerEnv:
 
         result, s = var, var_str_list[0]
         for k in var_list:
+            if type(result) != dict:
+                return None
             v = result.get(k, None)
             if v is None:
                 return None
@@ -123,6 +125,14 @@ class RulerNoMatch(Exception):
     pass
 
 
+class RulerGoto(Exception):
+    def __init__(self, rule_name):
+        Exception.__init__(self, rule_name)
+
+def goto_rule(rule_name):
+    raise RulerGoto(rule_name)
+
+
 class Ruler:
 
     def __init__(self):
@@ -136,6 +146,7 @@ class Ruler:
         self.register_action('re_match', basic_action.re_match)
         self.register_action('num_in_range', basic_action.num_in_range)
         self.register_action('ip_in_net', basic_action.ip_in_net)
+        self.register_action('goto', goto_rule)
 
     def build_rule(self, rule):
         cond_str, then_str = split_rule(rule)
@@ -159,7 +170,7 @@ class Ruler:
     def clear_action(self, name):
         self.env.clear_global_var(name)
 
-    def foreach_rule_set(self, name, d):
+    def foreach_rule_set(self, name):
         """
         遍历规则集，获得规则集的结果。
         每条规则由 Condition 和 Action 组成， Condition 若匹配中则执行 Action, 并返回Action的返回值作为Rule的返回值
@@ -168,7 +179,16 @@ class Ruler:
             rule, cond_tokens, then_tokens = rule_obj[0], rule_obj[1], rule_obj[2]
             result = calc(self.env, cond_tokens)
             if result:
-                return (calc(self.env, then_tokens), rule)
+                try:
+                    result = (calc(self.env, then_tokens), rule)
+                except RulerGoto as e:
+                    rule_name = e[0]
+                    try:
+                        result = self.foreach_rule_set(rule_name)
+                    except RulerNoMatch:
+                        continue
+                return result
+
         raise RulerNoMatch
 
     def entry(self, name, p):
@@ -181,7 +201,7 @@ class Ruler:
         self.env.push()
         for k, v in p.items():
             self.env.set_var(k, v)
-        result = self.foreach_rule_set(name, p)
+        result = self.foreach_rule_set(name)
         self.env.pop()
 
         return result

@@ -80,7 +80,7 @@ class LexerTestCase(unittest.TestCase):
         result = calc(RulerEnv(), self.lexer.parse_tokens(rule))
         self.assertEqual(result, True)
 
-    def test_lexer_4(self):
+    def test_lexer_5(self):
         # 针对ID的运算
         env = RulerEnv()
         env.set_var('id', 1024)
@@ -183,21 +183,127 @@ class RulerTestCase(unittest.TestCase):
         with self.assertRaises(RulerNoMatch):
             ret = ruler.entry('test', {})
 
+    def test_goto_1(self):
+        # Rule Pass
+        rule_goto_stbu = [
+            "IF FALSE THEN 'goto_rule_match'"
+        ]
+        rule_main = [
+            "IF FALSE THEN 'action1'",
+            "IF TRUE THEN goto('rule_goto_stbu')",
+            "IF TRUE THEN 'action2'"
+        ]
+        ruler = Ruler()
+        ruler.register_rule_set('main', rule_main)
+        ruler.register_rule_set('rule_goto_stbu', rule_goto_stbu)
+        result, rule = ruler.entry('main', {})
+        self.assertEqual(result, 'action2')
 
-    # def test_var_exist_1(self):
-    #     ruler = Ruler()
-    #     pkt = {
-    #         'userinfo': {'username': 'laowang'}
-    #     }
-    #
-    #     rule_set = [ "IF userinfo.username THEN TRUE" ]
-    #     ruler.register_rule_set('test', rule_set)
-    #     (result, line) = ruler.entry('test', {})
-    #     self.assertEqual(result, True)
-    #
-    #     rule_set = [ "IF userinfo.username THEN TRUE" ]
-    #     ruler.register_rule_set('test', rule_set)
-    #     (result, line) = ruler.entry('test', {})
-    #     self.assertEqual(result, True)
+
+    def test_goto_2(self):
+        # Rule Pass
+        rule_goto_stbu = [
+            "IF TRUE THEN 'goto_rule_match'"
+        ]
+        rule_main = [
+            "IF FALSE THEN 'action1'",
+            "IF TRUE THEN goto('rule_goto_stbu')",
+            "IF TRUE THEN 'action2'"
+        ]
+        ruler = Ruler()
+        ruler.register_rule_set('main', rule_main)
+        ruler.register_rule_set('rule_goto_stbu', rule_goto_stbu)
+        result, rule = ruler.entry('main', {})
+        self.assertEqual(result, 'goto_rule_match')
+
+    def test_goto_3(self):
+        # Rule Pass
+        rule_goto_stbu = [
+            "IF TRUE THEN 'goto_rule_match'"
+        ]
+        rule_main = [
+            "IF FALSE THEN 'action1'",
+            "IF TRUE THEN 'action2'",
+            "IF TRUE THEN goto('rule_goto_stbu')",
+        ]
+        ruler = Ruler()
+        ruler.register_rule_set('main', rule_main)
+        ruler.register_rule_set('rule_goto_stbu', rule_goto_stbu)
+        result, rule = ruler.entry('main', {})
+        self.assertEqual(result, 'goto_rule_match')
+
+
+    def test_goto_4(self):
+        # Rule Pass
+        rule_goto_stbu = [
+            "IF TRUE THEN 'goto_rule_match'"
+        ]
+        rule_main = [
+            "IF TRUE THEN goto('rule_goto_stbu')",
+            "IF TRUE THEN 'action1'",
+            "IF TRUE THEN 'action2'",
+        ]
+        ruler = Ruler()
+        ruler.register_rule_set('main', rule_main)
+        ruler.register_rule_set('rule_goto_stbu', rule_goto_stbu)
+        result, rule = ruler.entry('main', {})
+        self.assertEqual(result, 'action1')
+
+
+    def test_var_exist_1(self):
+        ruler = Ruler()
+
+        rule_set = [ "IF userinfo.username && TRUE THEN TRUE" ]
+        ruler.register_rule_set('test', rule_set)
+
+        pkt = {'userinfo': {'username': 'laowang'}}
+        (result, line) = ruler.entry('test', pkt)
+        self.assertEqual(result, True)
+
+        with self.assertRaises(RulerNoMatch):
+            pkt = {'userinfo': []}
+            ruler.entry('test', pkt)
+
+        with self.assertRaises(RulerNoMatch):
+            pkt = {'userinfo': ()}
+            ruler.entry('test', pkt)
+
+        with self.assertRaises(RulerNoMatch):
+            pkt = {'userinfo': 'this is str'}
+            ruler.entry('test', pkt)
+
+        with self.assertRaises(RulerNoMatch):
+            pkt = {'userinfo': 1}
+            ruler.entry('test', pkt)
+
+
+    def test_var_exist_2(self):
+        ruler = Ruler()
+
+        rule_set = [ "IF !userinfo.username THEN TRUE" ]
+        ruler.register_rule_set('test', rule_set)
+
+        # pkt = {'userinfo': {'username': 'laowang'}}
+        pkt = {'userinfo': []}
+
+        (result, line) = ruler.entry('test', pkt)
+        self.assertEqual(result, True)
+
+        # with self.assertRaises(RulerNoMatch):
+        #     pkt = {'userinfo': []}
+        #     ruler.entry('test', pkt)
+        #
+        # with self.assertRaises(RulerNoMatch):
+        #     pkt = {'userinfo': ()}
+        #     ruler.entry('test', pkt)
+        #
+        # with self.assertRaises(RulerNoMatch):
+        #     pkt = {'userinfo': 'this is str'}
+        #     ruler.entry('test', pkt)
+        #
+        # with self.assertRaises(RulerNoMatch):
+        #     pkt = {'userinfo': 1}
+        #     ruler.entry('test', pkt)
+
 
 
