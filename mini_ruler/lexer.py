@@ -35,6 +35,7 @@ class RuleLexer:
 
         'ID',
 
+        'FLOAT',
         'INTEGER',
         'STRING',
         'BOOL',
@@ -51,7 +52,18 @@ class RuleLexer:
 
     def t_ANY_BOOL(self, t):
         r'\b(TRUE|FALSE)\b'
-        t.value = True if t.value == "TRUE" else False
+
+        if t.value == "TRUE":
+            t.value = True
+        elif t.value == "FALSE":
+            t.value = False
+        else:
+            raise Exception("Unkonw Bool value %s " % t.value)
+        return t
+
+    def t_ANY_FLOAT(self, t):
+        r'\d+.\d+'
+        t.value = float(t.value)
         return t
 
     def t_ANY_INTEGER(self, t):
@@ -102,14 +114,15 @@ class RuleLexer:
             self.lexer.input(data)
             lex_tokens = []
             for tok in self.lexer:
+                # print tok
                 tok = (tok.type, tok.value)
                 if tok[0] == 'FUNCSTART':
                     tok = self.parse_call(tok)
                 lex_tokens.append(tok)
         except(lex.LexError) as e:
-            print("Error: %s" % e)
-            print(data)
-            print(''.join([' ' for i in range(self.lexer.lexpos) ]) + '^')
+            # print("Error: %s" % e)
+            # print(data)
+            # print(''.join([' ' for i in range(self.lexer.lexpos) ]) + '^')
             raise e
         return lex_tokens
 
