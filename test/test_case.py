@@ -5,7 +5,7 @@ from pprint import pprint
 
 import actions
 
-from mini_ruler.ruler import Ruler, RulerEnv
+from mini_ruler.ruler import Ruler, RulerEnv, RulerNoMatch
 from mini_ruler.lexer import RuleLexer
 
 from mini_ruler.calc_tokens import calc
@@ -175,6 +175,14 @@ class RulerTestCase(unittest.TestCase):
         self.assertNotEqual(ret, None)
         (result, line) = ret
         self.assertEqual(result, True)
+
+    def test_no_rule_match(self):
+        rule_set = [ "IF FALSE THEN TRUE" ]
+        ruler = Ruler()
+        ruler.register_rule_set('test', rule_set)
+        with self.assertRaises(RulerNoMatch):
+            ret = ruler.entry('test', {})
+
 
     # def test_var_exist_1(self):
     #     ruler = Ruler()
