@@ -16,6 +16,107 @@ def func_action(param1):
     return param1
 
 
+class LexerTestCase(unittest.TestCase):
+
+    lexer = RuleLexer()
+
+    def test_lexer_1(self):
+        # 测试 &&  ||
+        rule = "TRUE || FALSE && TRUE "
+        result = calc(RulerEnv(), self.lexer.parse_tokens(rule))
+        self.assertEqual(result, True)
+
+    def test_lexer_2(self):
+        # 测试 &&  ||
+        rule = "1 == 1 && 'str' == 'str' "
+        result = calc(RulerEnv(), self.lexer.parse_tokens(rule))
+        self.assertEqual(result, True)
+
+        rule = "1 != 1 && 'str' == 'str' "
+        result = calc(RulerEnv(), self.lexer.parse_tokens(rule))
+        self.assertEqual(result, False)
+
+        rule = "1 >= 1 && 1 <= 1 && 'str' == 'str' "
+        result = calc(RulerEnv(), self.lexer.parse_tokens(rule))
+        self.assertEqual(result, True)
+
+        rule = "2 > 1 && 1 < 2.5 && 'str' != 'str' "
+        result = calc(RulerEnv(), self.lexer.parse_tokens(rule))
+        self.assertEqual(result, False)
+
+    def test_lexer_3(self):
+        # 非运算针对 BOOL, INT, FLOAT 等类型的运算
+        rule = "!TRUE"
+        result = calc(RulerEnv(), self.lexer.parse_tokens(rule))
+        self.assertEqual(result, False)
+
+        rule = "!FALSE"
+        result = calc(RulerEnv(), self.lexer.parse_tokens(rule))
+        self.assertEqual(result, True)
+
+        rule = "!0"
+        result = calc(RulerEnv(), self.lexer.parse_tokens(rule))
+        self.assertEqual(result, True)
+
+        rule = "!1"
+        result = calc(RulerEnv(), self.lexer.parse_tokens(rule))
+        self.assertEqual(result, False)
+
+        rule = "!0.0000"
+        result = calc(RulerEnv(), self.lexer.parse_tokens(rule))
+        self.assertEqual(result, True)
+
+        rule = "!1.123"
+        result = calc(RulerEnv(), self.lexer.parse_tokens(rule))
+        self.assertEqual(result, False)
+
+    def test_lexer_4(self):
+        # 非运算针对 + - * / 等类型的运算
+        rule = "1 == 2 - 1"
+        result = calc(RulerEnv(), self.lexer.parse_tokens(rule))
+        self.assertEqual(result, True)
+
+        rule = "5 == 10 - 1 * 5"
+        result = calc(RulerEnv(), self.lexer.parse_tokens(rule))
+        self.assertEqual(result, True)
+
+    def test_lexer_4(self):
+        # 针对ID的运算
+        env = RulerEnv()
+        env.set_var('id', 1024)
+        rule = "1024 == id"
+        result = calc(env, self.lexer.parse_tokens(rule))
+        self.assertEqual(result, True)
+
+        env = RulerEnv()
+        var = {'id': 1024}
+        env.set_var('var', var)
+        rule = "1024 == var.id"
+        result = calc(env, self.lexer.parse_tokens(rule))
+        self.assertEqual(result, True)
+
+        env = RulerEnv()
+        var = {'dict':{'id': 1024}}
+        env.set_var('var', var)
+        rule = "1024 == var.dict.id"
+        result = calc(env, self.lexer.parse_tokens(rule))
+        self.assertEqual(result, True)
+
+        env = RulerEnv()
+        var = {'dict':{'id': 1024}}
+        env.set_var('var', var)
+        rule = "1111 == var.dict.id"
+        result = calc(env, self.lexer.parse_tokens(rule))
+        self.assertEqual(result, False)
+
+        env = RulerEnv()
+        var = {'dict':{'id': 1024}}
+        env.set_var('var', var)
+        rule = "var.dict.id"
+        result = calc(env, self.lexer.parse_tokens(rule))
+        self.assertEqual(result, 1024)
+
+
 class RulerTestCase(unittest.TestCase):
 
     def test_string_action(self):
