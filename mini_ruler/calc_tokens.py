@@ -42,6 +42,8 @@ def get_token_value(env, tok):
         call, args = tok[1][0], tok[1][1]
         call = env.get_var(call)
         new_args = [ get_token_value(env, arg) for arg in args ]
+        if call == None:
+            raise Exception("call '%s' does not exist" % tok[1][0])
         value = call(*new_args)
     else:
         value = tok[1]
