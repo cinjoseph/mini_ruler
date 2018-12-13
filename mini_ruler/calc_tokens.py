@@ -31,9 +31,11 @@ calc_tbl = {
     '-': lambda x, y: x - y,
 }
 
+
 def baisc_calc(op, x, y=None):
     result = calc_tbl[op](x, y)
     return result
+
 
 def get_token_value(env, tok):
     if tok[0] == 'ID':

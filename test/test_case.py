@@ -146,8 +146,8 @@ class RulerTestCase(unittest.TestCase):
         rule_set = [ "IF num_in_range(1, 100, 200) THEN FALSE" ]
         ruler = Ruler()
         ruler.register_rule_set('test', rule_set)
-        ret = ruler.entry('test', {})
-        self.assertEqual(ret, None)
+        with self.assertRaises(RulerNoMatch):
+            ret = ruler.entry('test', {})
 
         rule_set = ["IF num_in_range(110, 100, 200) THEN TRUE"]
         ruler = Ruler()
@@ -223,7 +223,7 @@ class RulerTestCase(unittest.TestCase):
         ]
         rule_main = [
             "IF FALSE THEN 'action1'",
-            "IF TRUE THEN 'action2'",
+            "IF FALSE THEN 'action2'",
             "IF TRUE THEN goto('rule_goto_stbu')",
         ]
         ruler = Ruler()
@@ -236,7 +236,7 @@ class RulerTestCase(unittest.TestCase):
     def test_goto_4(self):
         # Rule Pass
         rule_goto_stbu = [
-            "IF TRUE THEN 'goto_rule_match'"
+            "IF FLASE THEN 'goto_rule_match'"
         ]
         rule_main = [
             "IF TRUE THEN goto('rule_goto_stbu')",
