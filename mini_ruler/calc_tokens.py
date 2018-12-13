@@ -221,7 +221,7 @@ def calc(env, tokens):
             elif tok[0] == 'RPAREN':
                 flush_out_stack()
                 operands, _ = stack.pop()
-                stack.operands.append(operands)
+                stack.operands.append(operands[0])
                 tok = tok_iter.next()
             else:
                 raise Exception('Unknow tok %s' % str(tok))
