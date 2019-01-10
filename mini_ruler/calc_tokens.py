@@ -59,9 +59,9 @@ def create_token(x):
     if type(x) == str: return ('STRING', x)
     if type(x) == bool:  return ('BOOL', x)
     if type(x) == type(None): return ('NULL', x)
-    if type(x) == type(dict): return ('DICT', x)
-    if type(x) == type(list): return ('LIST', x)
-    if type(x) == type(tuple): return ('TUPLE', x)
+    if type(x) == dict: return ('DICT', x)
+    if type(x) == list: return ('LIST', x)
+    if type(x) == tuple: return ('TUPLE', x)
 
     # 目前还不支持 None, list, dict, tple 等类型, 做特殊处理
     # # 当获取到None时， 为False
