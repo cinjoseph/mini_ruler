@@ -221,9 +221,14 @@ class Ruler:
             raise RulerError("Ruler.entry must input a dict, but not %s" % type(p))
 
         self.env.push()
-        for k, v in p.items():
-            self.env.set_var(k, v)
-        result = self.foreach_rule_set(name)
-        self.env.pop()
-
+        try:
+            for k, v in p.items():
+                self.env.set_var(k, v)
+            result = self.foreach_rule_set(name)
+        except RulerNoMatch:
+            # 必须捕捉RulerNoMatch，并重新抛出，否则self.env.pop可能会被略过,
+            # 导致不断压栈, 内存泄露
+            raise RulerNoMatch
+        finally:
+            self.env.pop()
         return result
